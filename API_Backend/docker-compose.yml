@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+    app:
+        container_name: app
+        build:
+            args:
+                user: quan
+                uid: 1000
+            context: ./devops/
+            dockerfile: Dockerfile
+        image: api_training
+        restart: unless-stopped
+        working_dir: /var/www/html/
+        volumes:
+            - ./:/var/www/html/
+        networks:
+            - training
+    nginx:
+        image: nginx:stable-alpine
+        restart: unless-stopped
+        ports:
+            - 8006:80
+        volumes:
+            - ./:/var/www/html
+            - ./nginx/conf.d:/etc/nginx/conf.d/
+        networks:
+            - training
+    db:
+        container_name: database
+        image: mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: API_backend
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: chung
+            MYSQL_PASSWORD: chung
+        ports:
+            - "9906:3306"
+        volumes:
+            - ./database/photo-gallery-laravel-database.sql:/docker-entrypoint-initdb.d/dump.sql
+        networks:
+            - training
+
+#Docker Networks
+networks:
+    training:
+        driver: bridge
